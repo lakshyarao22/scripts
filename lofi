@@ -1,0 +1,7 @@
+#!/bin/sh
+active="$(pidof mpv)"
+if [[ -z $active ]]; then
+  mpv --volume=30 --no-video "https://www.youtube.com/watch?v=5qap5aO4i9A"
+else
+  killall mpv
+fi

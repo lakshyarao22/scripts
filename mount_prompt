@@ -1,0 +1,18 @@
+#!/bin/sh
+
+disk="$(lsblk -nr | tail -n +4| head -n -1 | awk '{print $1" "$4}' | rofi -dmenu -p "Mount Drives" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+diskToMount="$(printf $disk)"
+
+mountTo="$(printf "/mnt\n/mnt/hd\n/mnt/pd" | rofi -dmenu -p "Mount To" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+
+if [ -z "$disk" ]; then
+  :
+else
+  doas mount /dev/"$diskToMount" "$mountTo"
+fi
+
+kill -38 "$(cat ~/.cache/pidofbar)"
+if [ $? -eq 0 ]; then
+  notify-send "$diskToMount mounted to $mountTo" -t 2000
+else
+  notify-send "error in mounting disk" -u "critical" -t 2000

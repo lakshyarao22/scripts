@@ -1,0 +1,7 @@
+#!/bin/sh
+while true; 
+do
+curl -s "wttr.in/Noida?format=1" | tr -d ' ' > ~/.cache/weather
+curl -s "wttr.in/Noida?format=1" | tr -d ' ' > ~/.cache/weather
+sleep 3600
+done

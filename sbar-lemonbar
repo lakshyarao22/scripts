@@ -1,0 +1,153 @@
+#!/bin/env sh
+
+# INIT
+printf "$$" > ~/.cache/pidofbar
+sec=0
+# MODULES
+update_cpu () { 
+	cpu="$(grep -o "^[^ ]*" /proc/loadavg )" 
+}
+
+update_windowname(){
+  check=$(xdotool getwindowfocus)
+  if [[ "$check" == "1944" ]]; then
+  window=""
+else
+  window=" $(xdotool getwindowfocus getwindowname | head -c 100) "  
+  fi
+}
+
+update_workspaces() {
+	desktops=$(bspc query -D --names)
+  focused=$(bspc query -D --names -d focused)
+
+	for desktop in $desktops; do
+		desktop=$(echo $desktop)
+		nodes=$(bspc query -N -d $desktop)
+
+		if [ ! -z "$nodes" ]; then
+			desktops=$(echo $desktops | sed "s/$desktop/%{F#F7768E}$desktop%{F-}/")
+    fi
+
+  done
+  desktops=$(echo $desktops | sed "s/$focused/%{B#7AA2F7}%{F#1D202F} $focused \%{B-}%{F-}/")
+
+}
+
+update_memory () { 
+	memory="$(free -h | sed -n "2s/\([^ ]* *\)\{2\}\([^ ]*\).*/\2/p")"
+}
+
+update_time () { 
+	time="$( date "+%I:%M %P")" 
+  date="$(date "+%a %d %b")"
+}
+
+update_weather () { 
+  weather="$("cat" ~/.cache/weather)" 
+}
+
+update_bat () { 
+	# you might need to change the path depending on your device
+	read -r bat_status </sys/class/power_supply/BAT0/status
+	read -r bat_capacity </sys/class/power_supply/BAT0/capacity
+case "$bat_status" in
+  "Charging") status=""
+  ;;
+  "Not charging") status=""
+  ;;
+  "Discharging") status=""
+  ;;
+esac
+
+if [[ "notified" == "0" ]]; then
+ case "$bat_capacity" in
+  "100") dunstify "Battery Charged 💯" -t 1000 & notified="1"
+  ;;
+  "30") dunstify "Battery Low connect charger 🔌" -t 1000 & notified="1"
+  ;;
+  "15") dunstify "Battery Criticaly Low Connect Charger Now 🔌" -u critical & notified="1"
+  ;;
+  *) notified="0" &
+  ;;
+esac
+
+fi
+	bat="$status $bat_capacity%"
+}
+
+update_vol () { 
+	vol="$([ "$(pulsemixer --get-mute)" = "0" ] && printf '蓼 ' || printf '遼 ')$(pulsemixer --get-volume | awk '{print $1}')%"
+}
+
+update_wifi () {
+    wifi="$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -c 5-)"
+}
+
+update_bluetooth () {
+  bluetooth="$(bluetoothctl info | grep "Name" | cut -c 8-)"
+}
+
+update_backlight () { 
+	# you might need to change the path depending on your device
+	read -r actual_brightness </sys/class/backlight/intel_backlight/actual_brightness
+	read -r max_brightness </sys/class/backlight/intel_backlight/max_brightness
+	backlight=" $((actual_brightness*100/max_brightness))%"
+}
+
+# For calcurse users, refer https://github.com/pystardust/automeet
+#update_event () { 
+#	event="$(calcurse -n | sed 1d | \
+#		sed -E "s_^ *\[(.*):(.*)\] ([^\t]*)\t?.*_[\1h \2m->\3]_")" 
+#	[ "[]" = "$event" ] && event=""
+#}
+
+
+# modules that don't update on their own need to be run at the start for getting their initial value
+update_vol
+update_backlight
+update_weather
+update_bat
+update_cpu
+update_memory
+update_time
+update_wifi
+update_bluetooth 
+
+display () { 
+	printf "%s\n" "%{l}$desktops %{B#7AA2F7}%{F#1D202F}$window%{B-}%{F-}%{r}[$weather] [🌐 $wifi $bluetooth] [🧠 $memory $cpu] [$bat] [$backlight] [$vol] [📅 $date] [🕓 $time] "
+	# xsetroot -name " [$weather] [🧠 $memory $cpu] [$bat] [$backlight] [$vol] $time "
+}
+
+# SIGNALLING
+# trap	"<function>;display"		"RTMIN+n"
+trap	"update_vol;display"		"RTMIN"
+trap	"update_backlight;display" 	"RTMIN+1"
+trap	"update_bat;display" 		"RTMIN+2"
+trap	"update_workspaces;display" 		"RTMIN+3"
+# to update it from external commands
+## kill -m "$(cat ~/.cache/pidofbar)"
+# where m = 34 + n
+
+while true
+do
+	sleep 1 & wait && { 
+		# to update item ever n seconds with a offset of m
+		## [ $((sec % n)) -eq m ] && udpate_item
+		[ $((sec % 1 )) -eq 0 ] && update_windowname 	# update time every 5 seconds
+		[ $((sec % 5 )) -eq 1 ] && update_time 	# update time every 5 seconds
+		[ $((sec % 5)) -eq 2 ] && update_cpu 	# update cpu every 15 seconds
+		[ $((sec % 5)) -eq 2 ] && update_memory
+    [ $((sec % 5)) -eq 5 ] && update_wifi
+		[ $((sec % 5)) -eq 6 ] && update_bluetooth
+		[ $((sec % 5)) -eq 3 ] && update_bat
+		[ $((sec % 1800)) -eq 2 ] && update_weather 
+		#[ $((sec % 300)) -eq 1 ] && update_event
+
+		# how often the display updates ( 5 seconds )
+		[ $((sec % 1 )) -eq 0 ] && display
+		sec=$((sec + 1))
+	}
+done 
+
+

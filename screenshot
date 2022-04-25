@@ -1,0 +1,11 @@
+#!/bin/sh
+option="$(printf "selection\nwindow\nfullscreen\ncolorPicker\nsaveSelection\nsaveWindow\nsaveFullscreen" | rofi -dmenu -p "Power Options" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+case $option in
+colorPicker) exec maim -st 0 | convert - -resize 1x1\! -format '%[hex:p{0,0}]' info:- | cut -b -6 | xclip -selection clipboard ;;
+selection) exec maim --select | xclip -selection clipboard -t image/png ;;
+window) exec maim -i $(xdotool getactivewindow) | xclip -selection clipboard -t image/png ;;
+fullscreen) exec maim | xclip -selection clipboard -t image/png ;;
+saveSelection) exec maim --select ~/ss/$(date +%s).png ;;
+saveWindow) exec maim -i $(xdotool getactivewindow) ~/ss/$(date +%s).png ;;
+saveFullscreen) exec maim ~/ss/$(date +%s).png ;;
+esac

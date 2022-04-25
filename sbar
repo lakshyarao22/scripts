@@ -1,0 +1,180 @@
+#!/bin/env sh
+
+# INIT
+printf "$$" > ~/.cache/pidofbar
+sec=0
+notified="0"
+a=0
+
+rx="^c#f7768e^ 0"B"^d^" 
+tx="^c#7dcfff^ 0"B"^d^" 
+# MODULES
+update_memory () { 
+	memory="^c#7dcfff^ $(free -h | sed -n "2s/\([^ ]* *\)\{2\}\([^ ]*\).*/\2/p")^d^"
+}
+
+update_cpu () { 
+	cpu="^c#bb9af7^ $(grep -o "^[^ ]*" /proc/loadavg )^d^" 
+}
+update_temp () { 
+  degree=$(sensors | grep Package | awk '{print substr( $4, 2, length($4)-5) }')
+  if [[ $degree -ge 80 ]]
+  then
+	temp="^c#f7768e^ $degree°C^d^" 
+else
+	temp="^c#9ECE6A^ $degree°C^d^" 
+  fi
+}
+update_disk () {
+  diskPercent=$(df -h | grep "/dev/sda2" | head -1 | awk '{print substr( $5, 1, length($5)-1 )}')
+  if [[ $diskPercent -ge 90 ]]
+  then
+  disk="^c#f7768e^ $diskPercent%^d^"
+else
+  disk="^c#e0af68^ $diskPercent%^d^"
+  fi
+}
+
+update_time () { 
+	time="$(date "+^c#7DCFFF^ %a %d %b ^c#7AA2F7^ %I:%M %P^d^")" 
+}
+#update_packages () {
+#  packages="^c#E0AF68^ $((yay -Qu && checkupdates) | wc -l)^d^"
+#}
+update_weather () { 
+	read -r weather <~/.cache/weather
+}
+
+update_bat () { 
+	# you might need to change the path depending on your device
+	read -r bat_status </sys/class/power_supply/BAT0/status
+	read -r bat_capacity </sys/class/power_supply/BAT0/capacity
+
+	case "$bat_status" in
+  "Charging") status="^c#9ECE6A^"
+  ;;
+  "Not charging") status="^c#9ECE6A^"
+  ;;
+  "Discharging") status="^c#f7768e^"
+  ;;
+esac
+
+	bat="$status $bat_capacity%^d^"
+}
+
+update_vol () { 
+	vol="$([ "$(pulsemixer --get-mute)" = "0" ] && printf '^c#bb9af7^蓼 ' || printf '^c#F7768E^遼 ')$(pulsemixer --get-volume | awk '{print $1}')%^d^"
+}
+
+update_backlight () { 
+	# you might need to change the path depending on your device
+	read -r actual_brightness </sys/class/backlight/intel_backlight/actual_brightness
+	read -r max_brightness </sys/class/backlight/intel_backlight/max_brightness
+	backlight="^c#E0AF68^ $((actual_brightness*100/max_brightness))%^d^"
+}
+
+get () {
+   up_before=$(cat /sys/class/net/[ew]*/statistics/tx_bytes)
+   down_before=$(cat /sys/class/net/[ew]*/statistics/rx_bytes)
+   a=1
+}
+
+put () {
+  up_after=$(cat /sys/class/net/[ew]*/statistics/tx_bytes)
+  down_after=$(cat /sys/class/net/[ew]*/statistics/rx_bytes)
+  up_speed=$(numfmt --to=iec-i $(expr $up_after - $up_before))
+  down_speed=$(numfmt --to=iec-i $(expr $down_after - $down_before))
+  rx="^c#f7768e^ $down_speed"B"^d^" 
+  tx="^c#7dcfff^ $up_speed"B"^d^" 
+  a=0
+}
+update_wifi () {
+	#rx="^c#f7768e^ $(numfmt --to=iec $(cat /sys/class/net/[ew]*/statistics/rx_bytes))^d^"
+	#tx="^c#7dcfff^ $(numfmt --to=iec $(cat /sys/class/net/[ew]*/statistics/tx_bytes))^d^"
+case $a in
+  0) get;;
+  1) put;;
+esac
+	wifi="^c#9ece6a^ $(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -c 5-)^d^"
+}
+
+update_bluetooth () {
+  bluetoothDevice="$(bluetoothctl info | grep "Name" | cut -c 8-)"
+  if [[ -z $bluetoothDevice ]]
+  then
+  bluetooth=""
+else
+  bluetooth=" ^c#7aa2f7^ $bluetoothDevice^d^"
+  fi
+}
+
+mounted_drives () {
+  isDrive="$(lsblk -nr | grep /mnt)"
+  if [ -z "$isDrive" ]; then
+    driveIcon=" "
+  else
+    driveIcon=" [^c#f7768e^  USB Mounted^d^] "
+  fi
+}
+# For calcurse users, refer https://github.com/pystardust/automeet
+#update_event () { 
+#	event="$(calcurse -n | sed 1d | \
+#		sed -E "s_^ *\[(.*):(.*)\] ([^\t]*)\t?.*_[\1h \2m->\3]_")" 
+#	[ "[]" = "$event" ] && event=""
+#}
+
+
+# modules that don't update on their own need to be run at the start for getting their initial value
+update_backlight
+update_weather
+update_bat
+update_cpu
+update_temp
+update_memory
+update_time
+update_wifi
+update_bluetooth 
+update_vol
+#update_packages
+update_disk
+mounted_drives
+
+display () { 
+	#printf "%s\n" " $event [$weather] [$memory $cpu] [$bat] [$backlight] [$vol] $time "
+	xsetroot -name "[$weather] [$rx $tx $wifi$bluetooth] [$memory $cpu% $temp $disk] [$bat $backlight $vol]$driveIcon[$time] "
+}
+
+# SIGNALLING
+# trap	"<function>;display"		"RTMIN+n"
+trap	"update_vol;display"		"RTMIN"
+trap	"update_backlight;display" 	"RTMIN+1"
+trap	"update_bat;display" 		"RTMIN+2"
+trap	"update_bluetooth;display" 		"RTMIN+3"
+trap	"mounted_drives;display" 		"RTMIN+4"
+# to update it from external commands
+## kill -m "$(cat ~/.cache/pidofbar)"
+# where m = 34 + n
+
+while true
+do
+	sleep 1 & wait && { 
+		# to update item ever n seconds with a offset of m
+		## [ $((sec % n)) -eq m ] && udpate_item
+		[ $((sec % 5 )) -eq 1 ] && update_time 	# update time every 5 seconds
+		[ $((sec % 2)) -eq 1 ] && update_wifi
+		[ $((sec % 5)) -eq 1 ] && update_cpu 	# update cpu every 15 seconds
+		[ $((sec % 5)) -eq 1 ] && update_temp 	# update cpu every 15 seconds
+		[ $((sec % 5)) -eq 1 ] && update_memory
+		[ $((sec % 5)) -eq 1 ] && update_bat
+		[ $((sec % 5)) -eq 1 ] && update_bluetooth
+		[ $((sec % 5)) -eq 1 ] && update_weather 
+		#[ $((sec % 300)) -eq 1 ] && update_packages
+		[ $((sec % 120)) -eq 1 ] && update_disk
+
+		# how often the display updates ( 5 seconds )
+		[ $((sec % 1 )) -eq 0 ] && display
+		sec=$((sec + 1))
+	}
+done 
+
+

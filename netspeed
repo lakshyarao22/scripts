@@ -1,0 +1,28 @@
+#!/bin/sh
+
+a=0
+up_before=0
+up_after=0
+get () {
+   up_before=$(cat /sys/class/net/[ew]*/statistics/tx_bytes)
+   down_before=$(cat /sys/class/net/[ew]*/statistics/rx_bytes)
+   a=1
+   sleep 1
+}
+put () {
+  up_after=$(cat /sys/class/net/[ew]*/statistics/tx_bytes)
+  down_after=$(cat /sys/class/net/[ew]*/statistics/rx_bytes)
+  up_speed=$(numfmt --to=iec-i $(expr $up_after - $up_before))
+  down_speed=$(numfmt --to=iec-i $(expr $down_after - $down_before))
+  echo "^c#f7768e^ $down_speed ^c#7dcfff^ $up_speed^d^" 
+  a=0
+  sleep 1
+}
+while true
+do
+case $a in
+  0) get;;
+  1) put;;
+esac
+done
+

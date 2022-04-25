@@ -1,0 +1,22 @@
+#!/bin/sh
+
+polkit-dumb-agent &
+playerctld daemon &
+
+wallset -I $(( $RANDOM % 57 + 1 )) &
+
+### Simple X Hotkey Daemon ###
+exec sxhkd &
+### Hide mouse cursor when not in use
+exec unclutter -idle 5 &
+
+### Keyboard Options
+xset r rate 200 30 &
+setxkbmap -option caps:escape &
+
+### Fixing Autostart Stuff
+exec pulsemixer --get-volume > /dev/null &
+exec yay -Q | awk '{print $1}' > /home/lakshya/.config/progs &
+exec /home/lakshya/.local/bin/weather &
+sleep 3
+exec /home/lakshya/.local/bin/sbar 2> /dev/null &

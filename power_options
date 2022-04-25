@@ -1,0 +1,6 @@
+#!/bin/sh
+option="$(printf "shutdown\nreboot" | rofi -dmenu -p "Power Options" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+case $option in
+shutdown) exec shutdown now ;;
+reboot) exec reboot ;;
+esac

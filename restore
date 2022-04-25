@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd ~
+rm -rf ~/.git
+git clone "https://github.com/lakshyarao22/Dotfiles.git"
+cd ~/Dotfiles
+mv .git ..
+cd ~
+rm -rf Dotfiles

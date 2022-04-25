@@ -1,0 +1,9 @@
+#!/bin/sh
+
+mountedTo="$(printf "/mnt\n/mnt/hd\n/mnt/pd" | rofi -dmenu -p "Unmount" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+doas umount "$mountedTo"
+kill -38 "$(cat ~/.cache/pidofbar)"
+if [ $? -eq 0 ]; then
+notify-send "$mountedTo unmounted successfully" -t 2000
+else
+  notify-send "error in unmounting disk" -u "critical" -t 2000

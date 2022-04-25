@@ -1,0 +1,39 @@
+#!/bin/bash
+notified=false
+
+notify_100 () {
+  notify-send "Battery Charged 💯" -t 10000 &
+  notified=true
+}
+
+notify_30 () {
+  notify-send "Battery Low connect charger 🔌" -t 10000 -u critical &
+  notified=true
+}
+
+notify_15 () {
+  notify-send "Battery Criticaly Low Connect Charger Now 🔌" -u critical &
+  notified=true
+}
+notify_other () {
+  notified=false
+}
+
+while true
+do
+	read -r bat_capacity </sys/class/power_supply/BAT0/capacity
+if [[ "$notified" == false ]]; then
+ case "$bat_capacity" in
+  "100") notify_100 return;;
+  "99") notify_other return;;
+  "31") notify_other return;;
+  "30") notify_30 return;;
+  "29") notify_other return;;
+  "16") notify_other return;;
+  "15") notify_15 return;;
+  "14") notify_other return;;
+  *) notify_other return;;
+esac
+fi
+  sleep 1
+done
