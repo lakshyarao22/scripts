@@ -28,9 +28,14 @@ default_sink="alsa_output.pci-0000_00_1f.3.analog-stereo"
 # Connect if no device found
 if [[ -z $device ]]
 then
+  rfkill unblock bluetooth
+  rfkill unblock all
+  sleep 1
   connectDevice $airdopes_mac $airdopes_sink || connectDevice $mivi_mac $mivi_sink || notify-send "No Bluetooth Headset Found"
 else
 	bluetoothctl power off && pactl set-default-sink $default_sink
+  sleep 1
+  rfkill block bluetooth
 fi
 # Update sbar
 kill -34 "$(cat ~/.cache/pidofbar)"
