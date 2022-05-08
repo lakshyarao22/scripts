@@ -2,8 +2,10 @@
 
 polkit-dumb-agent &
 playerctld daemon &
+deluge &
 
-wallset -I $(( $RANDOM % 57 + 1 )) &
+# wallset -I $(( $RANDOM % 57 + 1 )) &
+mpv --wid=0 --loop=inf --no-audio ~/BackDrops/00$(( $RANDOM % 59 + 1 )).mp4 &
 
 ### Simple X Hotkey Daemon ###
 exec sxhkd &
@@ -16,7 +18,7 @@ setxkbmap -option caps:escape &
 
 ### Fixing Autostart Stuff
 exec pulsemixer --get-volume > /dev/null &
-exec yay -Q | awk '{print $1}' > /home/lakshya/.config/progs &
-exec /home/lakshya/.local/bin/weather &
+## exec yay -Q | awk '{print $1}' > /home/lakshya/.config/progs &
+## exec /home/lakshya/.local/bin/weather &
 sleep 3
 exec /home/lakshya/.local/bin/sbar 2> /dev/null &

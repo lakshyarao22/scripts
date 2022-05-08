@@ -41,9 +41,9 @@ update_time () {
 #update_packages () {
 #  packages="^c#E0AF68^ $((yay -Qu && checkupdates) | wc -l)^d^"
 #}
-update_weather () { 
-	read -r weather <~/.cache/weather
-}
+# update_weather () { 
+	# read -r weather <~/.cache/weather
+# }
 
 update_bat () { 
 	# you might need to change the path depending on your device
@@ -126,7 +126,7 @@ mounted_drives () {
 
 # modules that don't update on their own need to be run at the start for getting their initial value
 update_backlight
-update_weather
+# update_weather
 update_bat
 update_cpu
 update_temp
@@ -141,7 +141,7 @@ mounted_drives
 
 display () { 
 	#printf "%s\n" " $event [$weather] [$memory $cpu] [$bat] [$backlight] [$vol] $time "
-	xsetroot -name "[$weather] [$rx $tx $wifi$bluetooth] [$memory $cpu% $temp $disk] [$bat $backlight $vol]$driveIcon[$time] "
+	xsetroot -name "[$rx $tx $wifi$bluetooth] [$memory $cpu% $temp $disk] [$bat $backlight $vol]$driveIcon[$time] "
 }
 
 # SIGNALLING
@@ -167,7 +167,7 @@ do
 		[ $((sec % 5)) -eq 1 ] && update_memory
 		[ $((sec % 5)) -eq 1 ] && update_bat
 		[ $((sec % 5)) -eq 1 ] && update_bluetooth
-		[ $((sec % 5)) -eq 1 ] && update_weather 
+		#[ $((sec % 5)) -eq 1 ] && update_weather 
 		#[ $((sec % 300)) -eq 1 ] && update_packages
 		[ $((sec % 120)) -eq 1 ] && update_disk
 

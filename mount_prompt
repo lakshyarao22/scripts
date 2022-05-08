@@ -9,6 +9,8 @@ if [ -z "$disk" ]; then
   :
 else
   doas mount /dev/"$diskToMount" "$mountTo"
+  sudo chmod 777 "$mountTo"
+  pcmanfm ~/ "$mountTo"
 fi
 
 kill -38 "$(cat ~/.cache/pidofbar)"
