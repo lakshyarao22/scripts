@@ -5,7 +5,7 @@ playerctld daemon &
 deluge &
 
 # wallset -I $(( $RANDOM % 57 + 1 )) &
-mpv --wid=0 --loop=inf --no-audio ~/BackDrops/00$(( $RANDOM % 59 + 1 )).mp4 &
+mpv --wid=0 --loop=inf --no-audio ~/BackDrops/00$(( $RANDOM % 56 + 1 )).mp4 &
 
 ### Simple X Hotkey Daemon ###
 exec sxhkd &
