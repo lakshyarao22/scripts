@@ -58,8 +58,8 @@ update_bat () {
   "Discharging") status="^c#f7768e^"
   ;;
 esac
-  if [[ $bat_capacity < 20 ]]; then
-    warning="^c#f7768e^ Connect Charger Immediately"
+  if [[ $bat_capacity -le 20 ]]; then
+    warning="^c#f7768e^Connect Charger Immediately "
   else
     warning=""
   fi
