@@ -74,7 +74,7 @@ update_backlight () {
 	# you might need to change the path depending on your device
 	read -r actual_brightness </sys/class/backlight/intel_backlight/actual_brightness
 	read -r max_brightness </sys/class/backlight/intel_backlight/max_brightness
-	backlight="^c#E0AF68^ $((actual_brightness*100/max_brightness))%^d^"
+  backlight="^c#E0AF68^ $(printf "%.0f\n" $(brillo -G))%^d^"
 }
 
 get () {
