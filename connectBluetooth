@@ -3,6 +3,7 @@
 # Device BA:98:76:A3:4E:BB Mivi DuoPods M40
 # Device FC:D9:08:B6:39:C6 Redmi Note 10 Pro
 # Device 4F:E7:B7:B0:26:D4 Airdopes-131
+
 # initiate variables
 device="$(bluetoothctl info | grep "Name" | cut -c 8-)" # check connected device
 device_mac=""
