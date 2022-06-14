@@ -1,0 +1,13 @@
+#!/bin/bash
+
+value="$(cat $HOME/.cache/touchPadValue)"
+
+if [[ $value == "True" ]]; then
+  xinput disable "ELAN1300:00 04F3:3057 Touchpad"
+  notify-send "Touchpad Disabled" -t 2000
+  echo "False" > $HOME/.cache/touchPadValue
+else
+  xinput enable "ELAN1300:00 04F3:3057 Touchpad"
+  notify-send "Touchpad Enabled" -t 2000
+  echo "True" > $HOME/.cache/touchPadValue
+fi

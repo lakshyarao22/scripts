@@ -74,7 +74,7 @@ update_backlight () {
 	# you might need to change the path depending on your device
 	read -r actual_brightness </sys/class/backlight/intel_backlight/actual_brightness
 	read -r max_brightness </sys/class/backlight/intel_backlight/max_brightness
-  backlight="^c#E0AF68^ $(printf "%.0f\n" $(brillo -G))%^d^"
+	backlight="^c#E0AF68^ $((actual_brightness*100/max_brightness))%^d^"
 }
 
 get () {
@@ -169,6 +169,9 @@ do
 		[ $((sec % 5)) -eq 1 ] && update_cpu 	# update cpu every 15 seconds
 		[ $((sec % 5)) -eq 1 ] && update_temp 	# update cpu every 15 seconds
 		[ $((sec % 5)) -eq 1 ] && update_memory
+		[ $((sec % 5)) -eq 1 ] && update_vol
+		[ $((sec % 5)) -eq 1 ] && update_backlight
+		[ $((sec % 5)) -eq 1 ] && mounted_drives
 		[ $((sec % 5)) -eq 1 ] && update_bat
 		[ $((sec % 5)) -eq 1 ] && update_bluetooth
 		#[ $((sec % 5)) -eq 1 ] && update_weather 
