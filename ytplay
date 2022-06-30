@@ -1,0 +1,14 @@
+#!/bin/sh
+
+active="$(pidof mpv | awk '{print $1}')"
+
+if [[ $active -gt 1000 ]]; then
+  kill $active
+else
+query="$(rofi -dmenu -p "Play Song:-" -theme "$HOME/.config/rofi/launchers/text/style_2" | tr ' ' '+')"
+if [ -z $query ]; then
+  exit
+else
+mpv --volume=80 --no-video "https://youtube.com/$(curl -s "https://vid.puffyan.us/search?q=$query" | grep -Eo "watch\?v=.{11}" | head -n 1)"
+fi
+fi

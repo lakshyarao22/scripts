@@ -1,9 +1,12 @@
 #!/bin/sh
 
-disk="$(lsblk -nr | tail -n +4| head -n -1 | awk '{print $1" "$4}' | rofi -dmenu -p "Mount Drives" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+disk="$(lsblk -e7 -nr -o NAME,SIZE | tail -n +4| head -n -1 | rofi -dmenu -p "Mount Drives" -theme "$HOME/.config/rofi/launchers/text/style_2")"
 diskToMount="$(printf $disk)"
-
+if [ -z $diskToMount ]; then
+  exit
+else
 mountTo="$(printf "/mnt\n/mnt/hd\n/mnt/pd" | rofi -dmenu -p "Mount To" -theme "$HOME/.config/rofi/launchers/text/style_2")"
+fi
 
 if [ -z "$disk" ]; then
   :
